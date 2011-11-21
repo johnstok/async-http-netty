@@ -24,7 +24,9 @@ import java.util.List;
 import java.util.Map;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.handler.codec.http.DefaultHttpChunk;
 import org.jboss.netty.handler.codec.http.DefaultHttpChunkTrailer;
+import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
@@ -80,32 +82,30 @@ class NettyResponse
     /** {@inheritDoc} */
     @Override
     public void writeHeaders(final Map<String, List<String>> headers) {
-        // TODO: Enable chunked encoding if necessary.
         for (final Map.Entry<String, List<String>> h : headers.entrySet()) {
             _response.setHeader(h.getKey(), h.getValue());
         }
-        _channel.write(_response);
+        _channel.write(_response); // Chunked encoding will be enabled if req'd.
     }
 
 
     /** {@inheritDoc} */
     @Override
     public void writeBody(final ByteBuffer bytes) {
-        // TODO: Wrap ByteBuffers in ChunkedInput if response is chunked.
-        _channel.write(ChannelBuffers.copiedBuffer(bytes));
+        final HttpChunk chunk =
+            new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(bytes));
+        _channel.write(chunk);              // Chunk will be unwrapped if req'd.
     }
 
 
     /** {@inheritDoc} */
     @Override
     public void writeEnd(final Map<String, List<String>> trailers) {
-        if (_response.isChunked()) {
-            final DefaultHttpChunkTrailer trailerChunk =
-                new DefaultHttpChunkTrailer();
-            for (final Map.Entry<String, List<String>> t : trailers.entrySet()) {
-                trailerChunk.setHeader(t.getKey(), t.getValue());
-            }
-            _channel.write(trailerChunk);
+        final DefaultHttpChunkTrailer trailerChunk =
+            new DefaultHttpChunkTrailer();
+        for (final Map.Entry<String, List<String>> t : trailers.entrySet()) {
+            trailerChunk.setHeader(t.getKey(), t.getValue());
         }
+        _channel.write(trailerChunk);         // Chunk will be ignored if req'd.
     }
 }

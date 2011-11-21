@@ -30,7 +30,6 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
-import org.jboss.netty.handler.stream.ChunkedWriteHandler;
 import com.johnstok.http.RequestFactory;
 import com.johnstok.http.Server;
 
@@ -43,9 +42,6 @@ import com.johnstok.http.Server;
 public class NettyServer
     implements
         Server {
-
-    // TODO: Remove Chunk Aggregation
-    // TODO: Send trailers with request#onEnd()
 
     private Channel _channel;
 
@@ -74,9 +70,6 @@ public class NettyServer
                 pipeline.addLast(
                     "encoder",                                     //$NON-NLS-1$
                     new HttpResponseEncoder());
-                pipeline.addLast(
-                    "chunkedWriter",                               //$NON-NLS-1$
-                    new ChunkedWriteHandler());
                 pipeline.addLast(
                     "handler",                                     //$NON-NLS-1$
                     new AsyncHttpUpstreamHandler(requestFactory));
