@@ -68,8 +68,8 @@ class NettyResponse
         _response.setProtocolVersion(
             new HttpVersion(
                 "HTTP",                                            //$NON-NLS-1$
-                version.major(),
-                version.minor(),
+                version.getMajor(),
+                version.getMinor(),
                 true));
         _response.setStatus(
             new HttpResponseStatus(statusCode, reasonPhrase));

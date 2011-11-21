@@ -54,10 +54,10 @@ public class NettyServer
     @Override
     public void listen(final InetSocketAddress address,
                        final RequestFactory requestFactory) {
-        if (null!=_channel) {
+        if (isListening()) {
             throw new IllegalStateException("Server is already listening.");
         }
-        ServerBootstrap _bootstrap = new ServerBootstrap(
+        final ServerBootstrap _bootstrap = new ServerBootstrap(
             new NioServerSocketChannelFactory(
                 Executors.newCachedThreadPool(),
                 Executors.newCachedThreadPool()));
@@ -65,11 +65,21 @@ public class NettyServer
         _bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
             @Override  public ChannelPipeline getPipeline() {
                 final ChannelPipeline pipeline = new DefaultChannelPipeline();
-                pipeline.addLast("decoder", new HttpRequestDecoder());
-                pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
-                pipeline.addLast("encoder", new HttpResponseEncoder());
-                pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
-                pipeline.addLast("handler", new AsyncHttpUpstreamHandler(requestFactory));
+                pipeline.addLast(
+                    "decoder",                                     //$NON-NLS-1$
+                    new HttpRequestDecoder());
+                pipeline.addLast(
+                    "aggregator",                                  //$NON-NLS-1$
+                    new HttpChunkAggregator(65536));
+                pipeline.addLast(
+                    "encoder",                                     //$NON-NLS-1$
+                    new HttpResponseEncoder());
+                pipeline.addLast(
+                    "chunkedWriter",                               //$NON-NLS-1$
+                    new ChunkedWriteHandler());
+                pipeline.addLast(
+                    "handler",                                     //$NON-NLS-1$
+                    new AsyncHttpUpstreamHandler(requestFactory));
                 return pipeline;
             }
         });
@@ -80,10 +90,17 @@ public class NettyServer
     /** {@inheritDoc} */
     @Override
     public void close() {
-        if (null==_channel) {
+        if (!isListening()) {
             throw new IllegalStateException("Server is not listening.");
         }
         _channel.close().awaitUninterruptibly();
         _channel = null;
+    }
+
+
+    /** {@inheritDoc} */
+    @Override
+    public boolean isListening() {
+        return null!=_channel;
     }
 }
