@@ -37,7 +37,7 @@ import com.johnstok.http.Version;
  *
  * @author Keith Webster Johnston.
  */
-public class NettyResponse
+class NettyResponse
     implements
         Response {
     // TODO: The following methods should only be executed once:
@@ -53,7 +53,7 @@ public class NettyResponse
      * @param response The Netty response that backs this object.
      * @param channel  The Netty channel that will write bytes to the socket.
      */
-    public NettyResponse(final HttpResponse response,
+    NettyResponse(final HttpResponse response,
                          final Channel channel) {
         _response = response;
         _channel = channel;
@@ -63,8 +63,8 @@ public class NettyResponse
     /** {@inheritDoc} */
     @Override
     public void writeStatusLine(final Version version,
-                                  final int statusCode,
-                                  final String reasonPhrase) {
+                                final int statusCode,
+                                final String reasonPhrase) {
         _response.setProtocolVersion(
             new HttpVersion(
                 "HTTP",                                            //$NON-NLS-1$
@@ -73,6 +73,7 @@ public class NettyResponse
                 true));
         _response.setStatus(
             new HttpResponseStatus(statusCode, reasonPhrase));
+        // TODO: Send status line to channel now?
     }
 
 
@@ -83,15 +84,15 @@ public class NettyResponse
         for (final Map.Entry<String, List<String>> h : headers.entrySet()) {
             _response.setHeader(h.getKey(), h.getValue());
         }
+        _channel.write(_response);
     }
 
 
     /** {@inheritDoc} */
     @Override
     public void writeBody(final ByteBuffer bytes) {
-        // FIXME: Doesn't work if called multiple times!!
-        // Wrap ByteBuffers in ChunkedInput if response is chunked.
-        _response.setContent(ChannelBuffers.copiedBuffer(bytes));
+        // TODO: Wrap ByteBuffers in ChunkedInput if response is chunked.
+        _channel.write(ChannelBuffers.copiedBuffer(bytes));
     }
 
 
@@ -106,6 +107,5 @@ public class NettyResponse
             }
             _channel.write(trailerChunk);
         }
-        _channel.write(_response);
     }
 }
