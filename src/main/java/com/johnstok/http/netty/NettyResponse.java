@@ -22,6 +22,7 @@ package com.johnstok.http.netty;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.handler.codec.http.DefaultHttpChunk;
@@ -42,6 +43,9 @@ import com.johnstok.http.Version;
 class NettyResponse
     implements
         Response {
+
+    Logger logger = Logger.getLogger(getClass().getName());
+
     // TODO: The following methods should only be executed once:
     // writeResponseLine, writeResponseHeaders, writeResponseEnd
 
@@ -56,7 +60,7 @@ class NettyResponse
      * @param channel  The Netty channel that will write bytes to the socket.
      */
     NettyResponse(final HttpResponse response,
-                         final Channel channel) {
+                  final Channel channel) {
         _response = response;
         _channel = channel;
     }
@@ -67,6 +71,7 @@ class NettyResponse
     public void writeStatusLine(final Version version,
                                 final int statusCode,
                                 final String reasonPhrase) {
+        logger.info("WRITE STATUS LINE!");
         _response.setProtocolVersion(
             new HttpVersion(
                 "HTTP",                                            //$NON-NLS-1$
@@ -82,8 +87,11 @@ class NettyResponse
     /** {@inheritDoc} */
     @Override
     public void writeHeaders(final Map<String, List<String>> headers) {
-        for (final Map.Entry<String, List<String>> h : headers.entrySet()) {
-            _response.setHeader(h.getKey(), h.getValue());
+        logger.info("WRITE HEADERS!");
+        if (null!=headers) {
+            for (final Map.Entry<String, List<String>> h : headers.entrySet()) {
+                _response.setHeader(h.getKey(), h.getValue());
+            }
         }
         _channel.write(_response); // Chunked encoding will be enabled if req'd.
     }
@@ -92,6 +100,7 @@ class NettyResponse
     /** {@inheritDoc} */
     @Override
     public void writeBody(final ByteBuffer bytes) {
+        logger.info("WRITE BODY!");
         final HttpChunk chunk =
             new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(bytes));
         _channel.write(chunk);              // Chunk will be unwrapped if req'd.
@@ -101,6 +110,8 @@ class NettyResponse
     /** {@inheritDoc} */
     @Override
     public void writeEnd(final Map<String, List<String>> trailers) {
+        logger.info("WRITE END!");
+        if (null==trailers) { return; }
         final DefaultHttpChunkTrailer trailerChunk =
             new DefaultHttpChunkTrailer();
         for (final Map.Entry<String, List<String>> t : trailers.entrySet()) {

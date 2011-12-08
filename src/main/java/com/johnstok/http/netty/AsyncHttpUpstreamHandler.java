@@ -19,17 +19,20 @@
  *---------------------------------------------------------------------------*/
 package com.johnstok.http.netty;
 
-import static org.jboss.netty.handler.codec.http.HttpResponseStatus.OK;
-import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+import static org.jboss.netty.handler.codec.http.HttpResponseStatus.*;
+import static org.jboss.netty.handler.codec.http.HttpVersion.*;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
+import org.jboss.netty.handler.codec.http.HttpChunk;
+import org.jboss.netty.handler.codec.http.HttpChunkTrailer;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import com.johnstok.http.Request;
@@ -45,9 +48,12 @@ import com.johnstok.http.Version;
  */
 class AsyncHttpUpstreamHandler
     extends
-        SimpleChannelUpstreamHandler{
+        SimpleChannelUpstreamHandler {
+
+    private final Logger log = Logger.getLogger(getClass().getName());
 
     private final RequestFactory _requestFactory;
+    private Request _req;
 
 
     /**
@@ -63,37 +69,69 @@ class AsyncHttpUpstreamHandler
     /** {@inheritDoc} */
     @Override
     public void messageReceived(final ChannelHandlerContext ctx,
-                                final MessageEvent me) throws Exception {
+                                final MessageEvent me) {
+        final Object o = me.getMessage();
+
         try {
-            final HttpRequest request = (HttpRequest) me.getMessage();
-            final HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
-            final Channel channel = me.getChannel();
+            if (o instanceof HttpRequest) {
+                final HttpRequest request = (HttpRequest) o;
+                final HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
+                final Channel channel = me.getChannel();
 
-            final Request req   = _requestFactory.newInstance();
-            final Response resp = new NettyResponse(response, channel);
+                _req = _requestFactory.newInstance();
+                final Response resp = new NettyResponse(response, channel);
 
-            req.onBegin(resp);
-            req.onRequestLine(
-                request.getMethod().toString(),
-                request.getUri(),
-                new Version(
-                    request.getProtocolVersion().getMajorVersion(),
-                    request.getProtocolVersion().getMinorVersion()));
-            req.onHeaders(headersAsMap(request));
-            req.onBody(ByteBuffer.wrap(request.getContent().array()));
-            req.onEnd(null);
+                _req.onBegin(resp);
+                _req.onRequestLine(
+                    request.getMethod().toString(),
+                    request.getUri(),
+                    new Version(
+                        request.getProtocolVersion().getMajorVersion(),
+                        request.getProtocolVersion().getMinorVersion()));
+                _req.onHeaders(headersAsMap(request));
 
+                if (!request.isChunked()) { // No additional chunks to come
+                    try {
+                    _req.onBody(ByteBuffer.wrap(request.getContent().array()));
+                    _req.onEnd(null);
+                    } finally {
+                        ctx.getChannel().close();
+                    }
+                }
+
+            } else if (o instanceof HttpChunk) {
+                final HttpChunk chunk = (HttpChunk) o;
+                _req.onBody(ByteBuffer.wrap(chunk.getContent().array()));
+                if (chunk.isLast()) {
+                    try {
+                        if (chunk instanceof HttpChunkTrailer) {
+                            final HttpChunkTrailer trailer = (HttpChunkTrailer) chunk;
+                            _req.onEnd(headersAsMap(trailer));
+                        } else {
+                            _req.onEnd(new HashMap<String, List<String>>());
+                        }
+                    } finally {
+                        ctx.getChannel().close();
+                    }
+                }
+            }
         } catch (final RuntimeException e) {
             // TODO Auto-generated catch block.
             e.printStackTrace();
             throw e;
-        } finally {
-            ctx.getChannel().close();
         }
     }
 
 
     private Map<String, List<String>> headersAsMap(final HttpRequest request) {
+        final Map<String, List<String>> headers = new HashMap<String, List<String>>();
+        for (final String name : request.getHeaderNames()) {
+            headers.put(name, request.getHeaders(name));
+        }
+        return headers;
+    }
+
+    private Map<String, List<String>> headersAsMap(final HttpChunkTrailer request) {
         final Map<String, List<String>> headers = new HashMap<String, List<String>>();
         for (final String name : request.getHeaderNames()) {
             headers.put(name, request.getHeaders(name));

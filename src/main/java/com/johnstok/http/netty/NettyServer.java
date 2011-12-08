@@ -23,11 +23,15 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelDownstreamHandler;
+import org.jboss.netty.channel.ChannelEvent;
+import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.DefaultChannelPipeline;
+import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import com.johnstok.http.RequestFactory;
@@ -43,7 +47,9 @@ public class NettyServer
     implements
         Server {
 
+    private final ChannelGroup _connections = new  DefaultChannelGroup();
     private Channel _channel;
+    private ServerBootstrap _bootstrap;
 
 
     /** {@inheritDoc} */
@@ -53,20 +59,26 @@ public class NettyServer
         if (isListening()) {
             throw new IllegalStateException("Server is already listening.");
         }
-        final ServerBootstrap _bootstrap = new ServerBootstrap(
+
+        _bootstrap = new ServerBootstrap(
             new NioServerSocketChannelFactory(
                 Executors.newCachedThreadPool(),
                 Executors.newCachedThreadPool()));
-
         _bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
             @Override  public ChannelPipeline getPipeline() {
                 final ChannelPipeline pipeline = new DefaultChannelPipeline();
+                pipeline.addLast("connection-handler", new ChannelDownstreamHandler() {
+
+                    @Override
+                    public void handleDownstream(final ChannelHandlerContext ctx,
+                                                 final ChannelEvent e) {
+                        _connections.add(ctx.getChannel());
+                        ctx.sendDownstream(e);
+                    }
+                });
                 pipeline.addLast(
                     "decoder",                                     //$NON-NLS-1$
                     new HttpRequestDecoder());
-                pipeline.addLast(
-                    "aggregator",                                  //$NON-NLS-1$
-                    new HttpChunkAggregator(65536));
                 pipeline.addLast(
                     "encoder",                                     //$NON-NLS-1$
                     new HttpResponseEncoder());
@@ -86,8 +98,18 @@ public class NettyServer
         if (!isListening()) {
             throw new IllegalStateException("Server is not listening.");
         }
+
+        /*
+        To shut down a service gracefully, you should do the following:
+            1. unbind all channels created by the factory,
+            2. close all child channels accepted by the unbound channels, and (these two steps so far is usually done using ChannelGroup.close())
+            3. call releaseExternalResources().
+         */
         _channel.close().awaitUninterruptibly();
+        _connections.close().awaitUninterruptibly();
+        _bootstrap.releaseExternalResources();
         _channel = null;
+        _bootstrap = null;
     }
 
 
