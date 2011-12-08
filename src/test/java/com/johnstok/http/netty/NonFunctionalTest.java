@@ -44,7 +44,7 @@ public class NonFunctionalTest extends AbstractServerTest {
         // ARRANGE
         _server.listen(
             new InetSocketAddress(LOCALHOST, 4444),
-            new SingletonRequestFactory(null));
+            new HelloWorldRequestFactory());
 
         // ACT
         final Socket[] connections = new Socket[3];

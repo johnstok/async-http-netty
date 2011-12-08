@@ -25,9 +25,11 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
@@ -50,7 +52,8 @@ class AsyncHttpUpstreamHandler
     extends
         SimpleChannelUpstreamHandler {
 
-    private final Logger log = Logger.getLogger(getClass().getName());
+    public static Logger logger =
+        Logger.getLogger(AsyncHttpUpstreamHandler.class.getName());
 
     private final RequestFactory _requestFactory;
     private Request _req;
@@ -71,6 +74,7 @@ class AsyncHttpUpstreamHandler
     public void messageReceived(final ChannelHandlerContext ctx,
                                 final MessageEvent me) {
         final Object o = me.getMessage();
+        logger.info(o.toString());
 
         try {
             if (o instanceof HttpRequest) {
@@ -116,10 +120,18 @@ class AsyncHttpUpstreamHandler
                 }
             }
         } catch (final RuntimeException e) {
-            // TODO Auto-generated catch block.
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Error processing request", e);
             throw e;
         }
+    }
+
+
+    /** {@inheritDoc} */
+    @Override
+    public void exceptionCaught(final ChannelHandlerContext ctx,
+                                final ExceptionEvent e) {
+        // Catching 'java.io.IOException: Broken pipe' here indicates the client disconnected early.
+        logger.log(Level.WARNING, "Error processing request", e.getCause());
     }
 
 

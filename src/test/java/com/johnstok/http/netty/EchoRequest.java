@@ -77,6 +77,7 @@ public class EchoRequest
     /** {@inheritDoc} */
     @Override
     public void onEnd(final Map<String, List<String>> trailers) {
+        _response.writeEnd(null);
         _complete = true;
     }
 

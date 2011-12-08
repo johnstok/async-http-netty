@@ -7,7 +7,7 @@
 * [ ] Investigate thread safety of HttpResponseEncoder
 * [ ] Investigate threading model for Netty
 * [ ] Exception handling
-* [ ] Logging
+* [x] Logging
 
 ## v0.0.2
 

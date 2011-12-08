@@ -19,6 +19,7 @@
  *---------------------------------------------------------------------------*/
 package com.johnstok.http.netty;
 
+import static com.johnstok.http.netty.HTTPConstants.*;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
@@ -43,8 +44,11 @@ import com.johnstok.http.Version;
 class NettyResponse
     implements
         Response {
+    public static Logger logger =
+        Logger.getLogger(NettyResponse.class.getName());
 
-    Logger logger = Logger.getLogger(getClass().getName());
+    private static final String EMPTY_MAP = "{}";                  //$NON-NLS-1$
+
 
     // TODO: The following methods should only be executed once:
     // writeResponseLine, writeResponseHeaders, writeResponseEnd
@@ -71,7 +75,7 @@ class NettyResponse
     public void writeStatusLine(final Version version,
                                 final int statusCode,
                                 final String reasonPhrase) {
-        logger.info("WRITE STATUS LINE!");
+        logger.info(version+SP+statusCode+SP+reasonPhrase);
         _response.setProtocolVersion(
             new HttpVersion(
                 "HTTP",                                            //$NON-NLS-1$
@@ -87,7 +91,7 @@ class NettyResponse
     /** {@inheritDoc} */
     @Override
     public void writeHeaders(final Map<String, List<String>> headers) {
-        logger.info("WRITE HEADERS!");
+        logger.info((null==headers) ? EMPTY_MAP : headers.toString());
         if (null!=headers) {
             for (final Map.Entry<String, List<String>> h : headers.entrySet()) {
                 _response.setHeader(h.getKey(), h.getValue());
@@ -100,7 +104,7 @@ class NettyResponse
     /** {@inheritDoc} */
     @Override
     public void writeBody(final ByteBuffer bytes) {
-        logger.info("WRITE BODY!");
+        logger.info("byte["+bytes.remaining()+"]"); // mark, limit
         final HttpChunk chunk =
             new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(bytes));
         _channel.write(chunk);              // Chunk will be unwrapped if req'd.
@@ -110,7 +114,7 @@ class NettyResponse
     /** {@inheritDoc} */
     @Override
     public void writeEnd(final Map<String, List<String>> trailers) {
-        logger.info("WRITE END!");
+        logger.info((null==trailers) ? EMPTY_MAP : trailers.toString());
         if (null==trailers) { return; }
         final DefaultHttpChunkTrailer trailerChunk =
             new DefaultHttpChunkTrailer();
