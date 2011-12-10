@@ -52,6 +52,8 @@ class NettyResponse
 
     // TODO: The following methods should only be executed once:
     // writeResponseLine, writeResponseHeaders, writeResponseEnd
+    // FIXME: All writes should have a listener attached that correctly handles
+    // errors. E.g. a NULL header value.
 
     private final HttpResponse _response;
     private final Channel _channel;

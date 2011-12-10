@@ -61,9 +61,16 @@ public class EchoRequest
     public void onHeaders(final Map<String, List<String>> headers) {
         final Map<String, List<String>> responseHeaders =
             new HashMap<String, List<String>>();
+        if (isChunked(headers)) {
+            responseHeaders.put("Content-Length", headers.get("Content-Length"));
+        }
         responseHeaders.put("Content-Type", headers.get("Content-Type"));
-        responseHeaders.put("Content-Length", headers.get("Content-Length"));
         _response.writeHeaders(responseHeaders);
+    }
+
+
+    private boolean isChunked(final Map<String, List<String>> headers) {
+        return headers.containsKey("Chunked") && headers.get("Transfer-Encoding").contains("chunked"); // FIXME: Move to TransferEncoding class; fix test for comma-separated header values.
     }
 
 

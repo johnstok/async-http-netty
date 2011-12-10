@@ -20,14 +20,12 @@
 package com.johnstok.http.netty;
 
 import static org.junit.Assert.*;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
-import com.johnstok.http.Server;
+import com.johnstok.http.Connection;
 
 
 /**
@@ -35,44 +33,38 @@ import com.johnstok.http.Server;
  *
  * @author Keith Webster Johnston.
  */
-public class NonFunctionalTest extends AbstractServerTest {
+public class NonFunctionalTest extends AbstractServerTest<NettyServer> {
 
     /** Test. */
     @Test
-    public void TenKTest() throws Exception {
+    public void OneThousandConnections() throws Exception {
 
         // ARRANGE
+        final int connCount = 1000;
+        final CountDownLatch connLatch = new CountDownLatch(connCount);
         _server.listen(
             new InetSocketAddress(LOCALHOST, 4444),
-            new HelloWorldRequestFactory());
+            new SingletonRequestFactory(null),
+            new Connection() {
+                @Override
+                public void onOpen() { connLatch.countDown(); }
+            });
 
         // ACT
-        final Socket[] connections = new Socket[3];
+        final Socket[] connections = new Socket[connCount];
         for (int i=0; i<connections.length; i++) {
-            connections[i] = connectAndWrite();
+            connections[i] = new Socket(LOCALHOST, 4444);
         }
 
         // ASSERT
-        for (final Socket connection : connections) {
-            assertTrue(connection.isConnected());
-            connection.close();
-        }
-    }
-
-
-    private Socket connectAndWrite()
-        throws UnknownHostException,
-               IOException,
-               UnsupportedEncodingException {
-        final Socket s = new Socket(LOCALHOST, 4444);
-        final OutputStream os = s.getOutputStream();
-        os.write("GET / HTTP/1.1\r\n\r\n".getBytes("ASCII"));           //$NON-NLS-1$ //$NON-NLS-2$
-        os.flush();
-        return s;
+        assertTrue(
+            "Failed to open simultaneous connections.",
+            connLatch.await(1, TimeUnit.SECONDS));
+        assertEquals(connCount, _server.getConnectionCount());
     }
 
 
     /** {@inheritDoc} */
     @Override
-    protected Server createServer() { return new NettyServer(); }
+    protected NettyServer createServer() { return new NettyServer(); }
 }

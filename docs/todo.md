@@ -8,6 +8,8 @@
 * [ ] Investigate threading model for Netty
 * [ ] Exception handling
 * [x] Logging
+* [ ] FIXMEs
+* [ ] TODOs
 
 ## v0.0.2
 

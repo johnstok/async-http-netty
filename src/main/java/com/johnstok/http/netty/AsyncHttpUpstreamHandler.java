@@ -100,6 +100,7 @@ class AsyncHttpUpstreamHandler
                     _req.onEnd(null);
                     } finally {
                         ctx.getChannel().close();
+                        logger.info("Channel closed");
                     }
                 }
 
@@ -116,6 +117,7 @@ class AsyncHttpUpstreamHandler
                         }
                     } finally {
                         ctx.getChannel().close();
+                        logger.info("Channel closed");
                     }
                 }
             }

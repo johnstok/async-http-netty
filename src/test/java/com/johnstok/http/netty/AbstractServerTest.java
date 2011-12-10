@@ -27,12 +27,14 @@ import com.johnstok.http.Server;
 /**
  * Common methods for server tests.
  *
+ * @param <T> The type of server used.
+ *
  * @author Keith Webster Johnston.
  */
-public abstract class AbstractServerTest {
+public abstract class AbstractServerTest<T extends Server> {
 
     protected static final String LOCALHOST = "localhost";         //$NON-NLS-1$
-    protected Server _server = createServer();
+    protected T _server = createServer();
 
 
     /** Set up. */
@@ -55,5 +57,5 @@ public abstract class AbstractServerTest {
      *
      * @return The async-http server.
      */
-    protected abstract Server createServer();
+    protected abstract T createServer();
 }
