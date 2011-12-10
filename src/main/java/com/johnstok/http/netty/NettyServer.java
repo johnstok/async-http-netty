@@ -24,17 +24,17 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelEvent;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.ChannelUpstreamHandler;
+import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.DefaultChannelPipeline;
-import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
+import com.johnstok.http.Connection;
 import com.johnstok.http.RequestFactory;
 import com.johnstok.http.Server;
 
@@ -50,15 +50,17 @@ public class NettyServer
     public static Logger logger =
         Logger.getLogger(NettyServer.class.getName());
 
-    private final ChannelGroup _connections = new  DefaultChannelGroup();
+    private final DefaultChannelGroup _connections = new  DefaultChannelGroup();
     private Channel _channel;
     private ServerBootstrap _bootstrap;
+    private Connection _connection;
 
 
     /** {@inheritDoc} */
     @Override
     public void listen(final InetSocketAddress address,
-                       final RequestFactory requestFactory) {
+                       final RequestFactory requestFactory,
+                       final Connection connection) {
         logger.info("Starting");
         if (isListening()) {
             throw new IllegalStateException("Server is already listening.");
@@ -71,15 +73,12 @@ public class NettyServer
         _bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
             @Override  public ChannelPipeline getPipeline() {
                 final ChannelPipeline pipeline = new DefaultChannelPipeline();
-                pipeline.addLast("connection-handler", new ChannelUpstreamHandler() {
-
+                pipeline.addLast("connection-handler", new SimpleChannelUpstreamHandler() {
                     @Override
-                    public void handleUpstream(final ChannelHandlerContext ctx,
-                                               final ChannelEvent e) {
-                        // FIXME: Detect 'open connection' event.
-//                        logger.info("New connection");
+                    public void channelOpen(final ChannelHandlerContext ctx, final ChannelStateEvent e) {
+                        logger.info("New connection");
                         _connections.add(ctx.getChannel());
-                        ctx.sendUpstream(e);
+                        if (null!=_connection) { _connection.onOpen(); }
                     }
                 });
                 pipeline.addLast(
@@ -94,8 +93,20 @@ public class NettyServer
                 return pipeline;
             }
         });
+
+        _connection = connection;
         _channel = _bootstrap.bind(address);
+        _connections.add(_channel);
+
         logger.info("Started");
+    }
+
+
+    /** {@inheritDoc} */
+    @Override
+    public void listen(final InetSocketAddress address,
+                       final RequestFactory requestFactory) {
+        listen(address, requestFactory, null);
     }
 
 
@@ -115,11 +126,11 @@ public class NettyServer
          *
          *   See http://docs.jboss.org/netty/3.2/api/org/jboss/netty/channel/socket/nio/NioServerSocketChannelFactory.html
          */
-        _channel.close().awaitUninterruptibly();
         _connections.close().awaitUninterruptibly();
         _bootstrap.releaseExternalResources();
         _channel = null;
         _bootstrap = null;
+        _connection = null;
         logger.info("Closed");
     }
 
@@ -128,5 +139,10 @@ public class NettyServer
     @Override
     public boolean isListening() {
         return null!=_channel;
+    }
+
+
+    public int getConnectionCount() {
+        return (isListening()) ? _connections.size()-1 : 0;
     }
 }
