@@ -21,7 +21,6 @@ package com.johnstok.http.netty;
 
 import static org.junit.Assert.*;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
@@ -33,7 +32,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.protocol.RequestClientConnControl;
-import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
@@ -44,6 +42,8 @@ import org.junit.Before;
 import org.junit.Test;
 import com.johnstok.http.Request;
 import com.johnstok.http.RequestFactory;
+import com.johnstok.http.netty.test.HelloWorldRequestFactory;
+import com.johnstok.http.netty.test.SingletonRequestFactory;
 
 
 /**
@@ -115,50 +115,6 @@ public class SimpleRequestTest
         final HttpPost httpPost =
             new HttpPost("http://localhost:4444/");
         httpPost.setEntity(new StringEntity(uuid.toString(), "UTF-8"));
-
-        // ACT
-        final HttpResponse response = _httpClient.execute(httpPost);
-
-        // ASSERT
-        assertEquals(
-            200,
-            response.getStatusLine().getStatusCode());
-        assertEquals(
-            "OK",
-            response.getStatusLine().getReasonPhrase());
-        assertEquals(uuid.toString(), EntityUtils.toString(response.getEntity()));
-        assertTrue(request.isComplete());
-    }
-
-
-    /**
-     * Test.
-     *
-     * @throws Exception If the test fails.
-     */
-    @Test
-    public void echoVariableLengthContent() throws Exception {
-
-        // ARRANGE
-        final EchoRequest request = new EchoRequest();
-        _server.listen(
-            new InetSocketAddress(LOCALHOST, 4444),
-            new RequestFactory() {
-                @Override
-                public Request newInstance() {
-                    return request;
-                }
-            });
-        final InputStreamEntity entity =
-            new InputStreamEntity(
-                new ByteArrayInputStream("Foo".getBytes("UTF-8")),
-                -1);
-        entity.setContentType("text/plain");
-
-        final UUID uuid = UUID.randomUUID();
-        final HttpPost httpPost =
-            new HttpPost("http://localhost:4444/");
-        httpPost.setEntity(entity);
 
         // ACT
         final HttpResponse response = _httpClient.execute(httpPost);

@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with async-http. If not, see <http://www.gnu.org/licenses/>.
  *---------------------------------------------------------------------------*/
-package com.johnstok.http.netty;
+package com.johnstok.http.netty.test;
 
 import java.nio.ByteBuffer;
 import java.util.List;

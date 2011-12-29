@@ -22,6 +22,7 @@ package com.johnstok.http.netty;
 import static org.junit.Assert.*;
 import java.net.InetSocketAddress;
 import org.junit.Test;
+import com.johnstok.http.netty.test.SingletonRequestFactory;
 
 
 /**

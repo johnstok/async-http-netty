@@ -2,11 +2,12 @@
 
 ## v0.0.1
 
-* [ ] Chunked encoding for responses
-* [ ] Remove chunk aggregation for requests
+* [x] Chunked encoding for responses
+* [x] Remove chunk aggregation for requests
 * [ ] Investigate thread safety of HttpResponseEncoder
 * [ ] Investigate threading model for Netty
-* [ ] Exception handling
+* [ ] Exception handling - test throwing exception from each request method.
+* [ ] Exception handling - test providing invalid param's for each response method.
 * [x] Logging
 * [ ] FIXMEs
 * [ ] TODOs

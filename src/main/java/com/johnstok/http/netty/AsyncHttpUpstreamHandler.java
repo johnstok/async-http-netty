@@ -106,7 +106,6 @@ class AsyncHttpUpstreamHandler
 
             } else if (o instanceof HttpChunk) {
                 final HttpChunk chunk = (HttpChunk) o;
-                _req.onBody(ByteBuffer.wrap(chunk.getContent().array()));
                 if (chunk.isLast()) {
                     try {
                         if (chunk instanceof HttpChunkTrailer) {
@@ -119,6 +118,8 @@ class AsyncHttpUpstreamHandler
                         ctx.getChannel().close();
                         logger.info("Channel closed");
                     }
+                } else {
+                    _req.onBody(ByteBuffer.wrap(chunk.getContent().array()));
                 }
             }
         } catch (final RuntimeException e) {
