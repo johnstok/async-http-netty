@@ -44,6 +44,9 @@ import com.johnstok.http.Version;
 class NettyResponse
     implements
         Response {
+
+    private static enum State { NEW, STATUS_LINE_WRITTEN, HEADERS_WRITTEN }
+
     public static Logger logger =
         Logger.getLogger(NettyResponse.class.getName());
 
@@ -57,6 +60,7 @@ class NettyResponse
 
     private final HttpResponse _response;
     private final Channel _channel;
+    private State _state = State.NEW;
 
 
     /**
@@ -77,6 +81,12 @@ class NettyResponse
     public void writeStatusLine(final Version version,
                                 final int statusCode,
                                 final String reasonPhrase) {
+        requireState(_state, State.NEW);
+        requireNotNull(version);
+        requireGreaterThan(statusCode, 0);
+        requireNotNull(reasonPhrase);
+        requireNotEmpty(reasonPhrase);
+        // FIXME: Add reasonPhrase validation, per HTTP spec?
         logger.info(version+SP+statusCode+SP+reasonPhrase);
         _response.setProtocolVersion(
             new HttpVersion(
@@ -86,26 +96,60 @@ class NettyResponse
                 true));
         _response.setStatus(
             new HttpResponseStatus(statusCode, reasonPhrase));
+        _state=State.STATUS_LINE_WRITTEN;
         // TODO: Send status line to channel now?
+    }
+
+
+    private void requireState(final State actual, final State expected) {
+        if (actual!=expected) { throw new IllegalStateException("Current state is: "+_state); }
+    }
+
+
+    private void requireNotEmpty(final String string) {
+        if (string.trim().isEmpty()) { throw new IllegalArgumentException(); }
+    }
+
+
+    private void requireGreaterThan(final int integer, final int i) {
+        if (integer<=i) { throw new IllegalArgumentException(); }
+    }
+
+
+    private void requireNotNull(final Object o) {
+        if (null==o) { throw new IllegalArgumentException(); }
     }
 
 
     /** {@inheritDoc} */
     @Override
-    public void writeHeaders(final Map<String, List<String>> headers) {
-        logger.info((null==headers) ? EMPTY_MAP : headers.toString());
-        if (null!=headers) {
-            for (final Map.Entry<String, List<String>> h : headers.entrySet()) {
-                _response.setHeader(h.getKey(), h.getValue());
+    public void writeHeaders(final Map<String, ? extends List<String>> headers) {
+        requireState(_state, State.STATUS_LINE_WRITTEN);
+        requireNotNull(headers);
+        for (final Map.Entry<String, ? extends List<String>> h : headers.entrySet()) {
+            requireNotNull(h.getKey());
+            requireNotNull(h.getValue());
+            for (final String value : h.getValue()) {
+                requireNotNull(value);
             }
         }
+
+        logger.info((null==headers) ? EMPTY_MAP : headers.toString());
+
+        for (final Map.Entry<String, ? extends List<String>> h : headers.entrySet()) {
+            _response.setHeader(h.getKey(), h.getValue());
+        }
+
         _channel.write(_response); // Chunked encoding will be enabled if req'd.
+        _state=State.HEADERS_WRITTEN;
     }
 
 
     /** {@inheritDoc} */
     @Override
     public void writeBody(final ByteBuffer bytes) {
+        requireState(_state, State.HEADERS_WRITTEN);
+        requireNotNull(bytes);
         logger.info("byte["+bytes.remaining()+"]"); // mark, limit
         final HttpChunk chunk =
             new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(bytes));
