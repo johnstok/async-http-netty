@@ -159,12 +159,12 @@ class NettyResponse
 
     /** {@inheritDoc} */
     @Override
-    public void writeEnd(final Map<String, List<String>> trailers) {
+    public void writeEnd(final Map<String, ? extends List<String>> trailers) {
         logger.info((null==trailers) ? EMPTY_MAP : trailers.toString());
         if (null==trailers) { return; }
         final DefaultHttpChunkTrailer trailerChunk =
             new DefaultHttpChunkTrailer();
-        for (final Map.Entry<String, List<String>> t : trailers.entrySet()) {
+        for (final Map.Entry<String, ? extends List<String>> t : trailers.entrySet()) {
             trailerChunk.setHeader(t.getKey(), t.getValue());
         }
         _channel.write(trailerChunk);         // Chunk will be ignored if req'd.
