@@ -21,10 +21,7 @@ package com.johnstok.http.netty;
 
 import static org.junit.Assert.*;
 import java.io.ByteArrayInputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
-import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -157,42 +154,6 @@ public class ChunkedRequestTest
         assertEquals((byte) 'b', chunks.get(1).array()[0]);
         assertEquals(1, chunks.get(2).array().length);
         assertEquals((byte) 'c', chunks.get(2).array()[0]);
-    }
-
-
-    /**
-     * TODO: Add a description for this method.
-     *
-     * @param string
-     * @param string2
-     * @param i
-     */
-    private void post(final String targetURL, final String string2, final int i) throws Exception {
-        HttpURLConnection connection = null;
-        try {
-          //Create connection
-          final URL url = new URL(targetURL);
-          connection = (HttpURLConnection) url.openConnection();
-          connection.setChunkedStreamingMode(i);
-          connection.setRequestMethod("POST");
-          connection.setRequestProperty("Transfer-Encoding", "chunked");
-          connection.setUseCaches(false);
-          connection.setDoInput(false);
-          connection.setDoOutput(true);
-
-          //Send request
-          final OutputStream os = connection.getOutputStream();
-          for (final char c : string2.toCharArray()) {
-              os.write(c);
-              os.flush();
-          }
-          os.close();
-
-        } finally {
-          if(connection != null) {
-            connection.disconnect();
-          }
-        }
     }
 
 

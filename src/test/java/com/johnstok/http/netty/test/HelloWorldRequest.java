@@ -32,7 +32,7 @@ import com.johnstok.http.async.Response;
  *
  * @author Keith Webster Johnston.
  */
-public final class HelloWorldRequest
+public class HelloWorldRequest
     implements
         Request {
 
@@ -69,6 +69,6 @@ public final class HelloWorldRequest
 
     @Override
     public void onBegin(final Response response) {
-        this._response=response;
+        _response=response;
     }
 }

@@ -20,13 +20,7 @@
 package com.johnstok.http.netty;
 
 import static org.junit.Assert.*;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.UUID;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -147,28 +141,6 @@ public class SimpleRequestTest
         assertEquals("Hello World!", responseBody);
     }
 
-
-    private String get(final String uri) {
-        try {
-            final StringBuilder responseBody = new StringBuilder();
-            final URL oracle = new URL("http://localhost:4444"+uri);
-            final URLConnection yc = oracle.openConnection();
-            final BufferedReader in = new BufferedReader(
-                                    new InputStreamReader(
-                                    yc.getInputStream()));
-            String inputLine;
-
-            while ((inputLine = in.readLine()) != null) {
-                responseBody.append(inputLine);
-            }
-            in.close();
-            return responseBody.toString();
-        } catch (final MalformedURLException e) {
-            throw new RuntimeException("Error GETting '"+uri+"'", e);
-        } catch (final IOException e) {
-            throw new RuntimeException("Error GETting '"+uri+"'", e);
-        }
-    }
 
     /** Test. */
     @Test
