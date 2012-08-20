@@ -73,8 +73,11 @@ class AsyncHttpUpstreamHandler
     @Override
     public void messageReceived(final ChannelHandlerContext ctx,
                                 final MessageEvent me) {
+
         final Object o = me.getMessage();
         logger.info(o.toString());
+
+        if (!ctx.getChannel().isOpen()) { discard(o); return; }
 
         try {
             if (o instanceof HttpRequest) {
@@ -84,20 +87,28 @@ class AsyncHttpUpstreamHandler
 
                 _req = _requestFactory.newInstance();
                 final Response resp = new NettyResponse(response, channel);
-
-                _req.onBegin(resp);
-                _req.onRequestLine(
-                    request.getMethod().toString(),
-                    request.getUri(),
+                final String method = request.getMethod().toString();
+                final String uri = request.getUri();
+                final Version version =
                     new Version(
                         request.getProtocolVersion().getMajorVersion(),
-                        request.getProtocolVersion().getMinorVersion()));
-                _req.onHeaders(headersAsMap(request));
+                        request.getProtocolVersion().getMinorVersion());
+                try {
+                    _req.onBegin(resp);
+                    _req.onRequestLine(method, uri, version);
+                    _req.onHeaders(headersAsMap(request));
+                } catch (final Exception e) {
+                    ctx.getChannel().close();
+                    logger.log(Level.WARNING, "Request threw exception", e);
+                    return;
+                }
 
                 if (!request.isChunked()) { // No additional chunks to come
                     try {
-                    _req.onBody(ByteBuffer.wrap(request.getContent().array()));
-                    _req.onEnd(null);
+                        _req.onBody(ByteBuffer.wrap(request.getContent().array()));
+                        _req.onEnd(null);
+                    } catch (final Exception e) {
+                        logger.log(Level.WARNING, "Request threw exception", e);
                     } finally {
                         ctx.getChannel().close();
                         logger.info("Channel closed");
@@ -119,13 +130,29 @@ class AsyncHttpUpstreamHandler
                         logger.info("Channel closed");
                     }
                 } else {
-                    _req.onBody(ByteBuffer.wrap(chunk.getContent().array()));
+                    try {
+                        _req.onBody(ByteBuffer.wrap(chunk.getContent().array()));
+                    } catch (final Exception e) {
+                        ctx.getChannel().close();
+                        logger.log(Level.WARNING, "Request threw exception", e);
+                        return;
+                    }
                 }
             }
         } catch (final RuntimeException e) {
             logger.log(Level.WARNING, "Error processing request", e);
             throw e;
         }
+    }
+
+
+    /**
+     * TODO: Add a description for this method.
+     *
+     * @param o
+     */
+    private void discard(final Object o) {
+        logger.warning("Discarded message on closed channel.");
     }
 
 
