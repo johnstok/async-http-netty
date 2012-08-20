@@ -26,10 +26,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.johnstok.http.Request;
-import com.johnstok.http.RequestFactory;
-import com.johnstok.http.Response;
 import com.johnstok.http.Version;
+import com.johnstok.http.async.Request;
+import com.johnstok.http.async.RequestFactory;
+import com.johnstok.http.async.Response;
 import com.johnstok.http.netty.NettyServer;
 
 

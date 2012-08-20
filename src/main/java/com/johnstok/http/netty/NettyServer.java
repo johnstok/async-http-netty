@@ -34,9 +34,9 @@ import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
-import com.johnstok.http.Connection;
-import com.johnstok.http.RequestFactory;
-import com.johnstok.http.Server;
+import com.johnstok.http.async.Connection;
+import com.johnstok.http.async.RequestFactory;
+import com.johnstok.http.async.Server;
 
 
 /**

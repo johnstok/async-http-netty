@@ -25,7 +25,7 @@ import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.Test;
-import com.johnstok.http.Connection;
+import com.johnstok.http.async.Connection;
 import com.johnstok.http.netty.test.SingletonRequestFactory;
 
 

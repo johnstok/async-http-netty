@@ -37,10 +37,10 @@ import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpChunkTrailer;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
-import com.johnstok.http.Request;
-import com.johnstok.http.RequestFactory;
-import com.johnstok.http.Response;
 import com.johnstok.http.Version;
+import com.johnstok.http.async.Request;
+import com.johnstok.http.async.RequestFactory;
+import com.johnstok.http.async.Response;
 
 
 /**

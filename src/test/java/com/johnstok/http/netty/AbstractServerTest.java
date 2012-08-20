@@ -21,7 +21,7 @@ package com.johnstok.http.netty;
 
 import org.junit.After;
 import org.junit.Before;
-import com.johnstok.http.Server;
+import com.johnstok.http.async.Server;
 
 
 /**

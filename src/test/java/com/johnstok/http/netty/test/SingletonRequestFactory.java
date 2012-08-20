@@ -19,8 +19,8 @@
  *---------------------------------------------------------------------------*/
 package com.johnstok.http.netty.test;
 
-import com.johnstok.http.Request;
-import com.johnstok.http.RequestFactory;
+import com.johnstok.http.async.Request;
+import com.johnstok.http.async.RequestFactory;
 
 
 /**

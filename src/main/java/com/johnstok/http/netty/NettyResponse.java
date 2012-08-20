@@ -32,8 +32,8 @@ import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
-import com.johnstok.http.Response;
 import com.johnstok.http.Version;
+import com.johnstok.http.async.Response;
 
 
 /**

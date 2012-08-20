@@ -44,10 +44,10 @@ import org.apache.http.util.EntityUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import com.johnstok.http.Request;
-import com.johnstok.http.RequestFactory;
-import com.johnstok.http.Response;
 import com.johnstok.http.Version;
+import com.johnstok.http.async.Request;
+import com.johnstok.http.async.RequestFactory;
+import com.johnstok.http.async.Response;
 
 
 /**

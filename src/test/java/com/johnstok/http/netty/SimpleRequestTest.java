@@ -40,8 +40,8 @@ import org.apache.http.util.EntityUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import com.johnstok.http.Request;
-import com.johnstok.http.RequestFactory;
+import com.johnstok.http.async.Request;
+import com.johnstok.http.async.RequestFactory;
 import com.johnstok.http.netty.test.HelloWorldRequestFactory;
 import com.johnstok.http.netty.test.SingletonRequestFactory;
 

@@ -28,8 +28,8 @@ import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.junit.Test;
-import com.johnstok.http.Response;
 import com.johnstok.http.Version;
+import com.johnstok.http.async.Response;
 import com.johnstok.http.netty.test.FakeChannel;
 
 

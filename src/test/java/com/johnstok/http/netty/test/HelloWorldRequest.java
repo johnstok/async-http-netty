@@ -23,9 +23,9 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import com.johnstok.http.Request;
-import com.johnstok.http.Response;
 import com.johnstok.http.Version;
+import com.johnstok.http.async.Request;
+import com.johnstok.http.async.Response;
 
 /**
  * HTTP Request that sends a 'Hello World!" response.
