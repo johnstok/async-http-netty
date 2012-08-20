@@ -34,7 +34,9 @@ import com.johnstok.http.netty.NettyServer;
 
 
 /**
- * TODO: Describe this classes responsibility.
+ * Random Number Generator
+ *
+ * See http://fl-ex.blogspot.com/2011/12/comparing-random-generator-nodejs-and.html
  *
  * TODO: Add a description for this type.
  *
