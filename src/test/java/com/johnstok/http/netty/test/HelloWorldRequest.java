@@ -20,6 +20,7 @@
 package com.johnstok.http.netty.test;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -55,7 +56,7 @@ public class HelloWorldRequest
     @Override
     public void onEnd(final Map<String, List<String>> trailers) {
         _response.writeStatusLine(new Version(1, 1), 200, "OK");
-        _response.writeHeaders(null);
+        _response.writeHeaders(new HashMap<String, List<String>>());
         _response.writeBody(ByteBuffer.wrap("Hello World!".getBytes()));
         _response.writeEnd(null);
     }
