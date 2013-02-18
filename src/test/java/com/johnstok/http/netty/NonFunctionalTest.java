@@ -38,7 +38,7 @@ public class NonFunctionalTest extends AbstractServerTest<NettyServer> {
 
     /** Test. */
     @Test
-    public void OneThousandConnections() throws Exception {
+    public void oneThousandConnections() throws Exception {
 
         // ARRANGE
         final int connCount = 1000;

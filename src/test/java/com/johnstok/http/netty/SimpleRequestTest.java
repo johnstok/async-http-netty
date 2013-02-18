@@ -36,6 +36,7 @@ import org.junit.Before;
 import org.junit.Test;
 import com.johnstok.http.async.Request;
 import com.johnstok.http.async.RequestFactory;
+import com.johnstok.http.client.SynchronousClient;
 import com.johnstok.http.netty.test.HelloWorldRequestFactory;
 import com.johnstok.http.netty.test.SingletonRequestFactory;
 
@@ -135,7 +136,7 @@ public class SimpleRequestTest
             new HelloWorldRequestFactory());
 
         // ACT
-        final String responseBody = get("/");
+        final String responseBody = SynchronousClient.get("/");
 
         // ASSERT
         assertEquals("Hello World!", responseBody);

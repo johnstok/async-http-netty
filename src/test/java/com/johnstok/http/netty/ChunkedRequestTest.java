@@ -45,6 +45,7 @@ import com.johnstok.http.Version;
 import com.johnstok.http.async.Request;
 import com.johnstok.http.async.RequestFactory;
 import com.johnstok.http.async.Response;
+import com.johnstok.http.client.SynchronousClient;
 
 
 /**
@@ -143,7 +144,7 @@ public class ChunkedRequestTest
 
 
         // ACT
-        post("http://localhost:4444/", "abc", 1);
+        SynchronousClient.post("http://localhost:4444/", "abc", 1);
         latch.await();
 
         // ASSERT
