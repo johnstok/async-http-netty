@@ -19,7 +19,6 @@
  *---------------------------------------------------------------------------*/
 package com.johnstok.http.netty;
 
-import static com.johnstok.http.netty.HTTPConstants.*;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +31,7 @@ import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
+import com.johnstok.http.Syntax;
 import com.johnstok.http.Version;
 import com.johnstok.http.async.Response;
 
@@ -87,7 +87,7 @@ class NettyResponse
         requireNotNull(reasonPhrase);
         requireNotEmpty(reasonPhrase);
         // FIXME: Add reasonPhrase validation, per HTTP spec?
-        logger.info(version+SP+statusCode+SP+reasonPhrase);
+        logger.info(version+Syntax.SP+statusCode+Syntax.SP+reasonPhrase);
         _response.setProtocolVersion(
             new HttpVersion(
                 "HTTP",                                            //$NON-NLS-1$
